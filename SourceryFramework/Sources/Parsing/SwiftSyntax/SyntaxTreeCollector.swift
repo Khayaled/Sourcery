@@ -248,10 +248,24 @@ class SyntaxTreeCollector: SyntaxVisitor {
             type = processPossibleProtocolComposition(for: possibleTypeName, localName: "")
             typeName = TypeName(possibleTypeName)
         }
-
-        sourceryProtocol.associatedTypes[name] = AssociatedType(name: name, typeName: typeName, type: type)
+                
+        let genericRequirements: [GenericRequirement] = node.genericWhereClause?.requirementList.compactMap { requirement in
+            if let sameType = requirement.body.as(SameTypeRequirementSyntax.self) {
+                return GenericRequirement(sameType)
+            } else if let conformanceType = requirement.body.as(ConformanceRequirementSyntax.self) {
+                return GenericRequirement(conformanceType)
+            }
+            return nil
+        } ?? []
+        
+        sourceryProtocol.associatedTypes[name] = AssociatedType(name: name, typeName: typeName, type: type, genericRequirements: genericRequirements)
         return .skipChildren
     }
+    
+    /*public override func visit(_ node: GenericWhereClauseSyntax) -> SyntaxVisitorContinueKind {
+        Log.info(node.requirementList.first)
+        return .skipChildren
+    }*/
 
 
     public override func visit(_ node: OperatorDeclSyntax) -> SyntaxVisitorContinueKind {

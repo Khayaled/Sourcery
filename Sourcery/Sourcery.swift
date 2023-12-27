@@ -342,7 +342,7 @@ extension Sourcery {
                         case .containsConflictMarkers:
                             throw Error.containsMergeConflictMarkers
                         case .isCodeGenerated:
-                            return nil
+                            fallthrough
                         case .approved:
                             return try makeParser(for: content, forceParse: forceParse, parseDocumentation: parseDocumentation, path: path, module: module).parse()
                         }
@@ -353,7 +353,7 @@ extension Sourcery {
 
             let transform: (ParserWrapper) -> (changed: Bool, result: FileParserResult)? = { parser in
                 do {
-                    return try self.loadOrParse(parser: parser, cachesPath: self.cachesDir(sourcePath: from))
+                    return try parser.parse().map { (changed: true, result: $0) }//try self.loadOrParse(parser: parser, cachesPath: self.cachesDir(sourcePath: from))
                 } catch {
                     lastError = error
                     Log.error("Unable to parse \(parser.path), error \(error)")
