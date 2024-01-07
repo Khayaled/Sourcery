@@ -207,6 +207,15 @@ public enum Composer {
                 return baseType
             }
         }
+        if case let composition = name.split(separator: "&").map({ $0.trimmed }), !composition.isEmpty {
+            let composedTypes = composition.compactMap { typesByName[$0] }
+            let composedTypeNames = composedTypes.map{ $0.globalName }
+            return ProtocolComposition (
+                name: composedTypeNames.joined(separator: " & "),
+                composedTypeNames: composedTypeNames.map { TypeName($0) },
+                composedTypes: composedTypes
+            )
+        }
         return nil
     }
 
